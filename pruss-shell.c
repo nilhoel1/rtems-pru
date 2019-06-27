@@ -77,7 +77,7 @@ rtems_pruss_shell_load (const rtems_printer* printer,
       exit(-1);
     }
   }
-  rtems_printf (&printer, "error: unknown option: %s\n", argv[argc]);
+  rtems_printf (printer, "error: unknown option: %s\n", argv[argc]);
   return -1;
 }
 
@@ -204,7 +204,7 @@ rtems_pruss_parse_arg (const char  opt,
                      int         argc,
                      char*       argv[])
 {
-  ssize_t arg = rtems_rtl_parse_arg_index (opt, skip_opts, argc, argv);
+  ssize_t arg = rtems_pruss_parse_arg_index (opt, skip_opts, argc, argv);
   if (arg < 0)
     return NULL;
   return argv[arg];
