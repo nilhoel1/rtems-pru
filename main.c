@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -14,6 +15,9 @@
 #include <rtems/shell.h>
 
 #include<bsp/pruss-shell.h>
+
+#include <bsp/prussdrv.h>
+#include <bsp/pruss_intc_mapping.h>
 
 #include <machine/rtems-bsd-config.h>
 
@@ -98,6 +102,44 @@ debugger_config(void)
   }
 }
 
+int shell_pruss_loader(int argc, char **argv) {
+  if (argc != 2 && argc != 3) {
+    printf("Usage: %s loader text.bin [data.bin]\n", argv[0]);
+    return 1;
+  }
+
+  prussdrv_init();
+  if (prussdrv_open(PRU_EVTOUT_0) == -1) {
+    printf("prussdrv_open() failed\n");
+    return 1;
+  }
+
+  tpruss_intc_initdata pruss_intc_initdata = PRUSS_INTC_INITDATA;
+  prussdrv_pruintc_init(&pruss_intc_initdata);
+
+  printf("Executing program and waiting for termination\n");
+  if (argc == 3) {
+    if (prussdrv_load_datafile(0 /* PRU0 */, argv[2]) < 0) {
+      fprintf(stderr, "Error loading %s\n", argv[2]);
+      exit(-1);
+    }
+  }
+  if (prussdrv_exec_program(0 /* PRU0 */, argv[1]) < 0) {
+    fprintf(stderr, "Error loading %s\n", argv[1]);
+    exit(-1);
+  }
+
+  // Wait for the PRU to let us know it's done
+  prussdrv_pru_wait_event(PRU_EVTOUT_0);
+  printf("All done\n");
+
+  prussdrv_pru_disable(0 /* PRU0 */);
+  prussdrv_exit();
+
+  return 0;
+}
+
+
 int
 main(int argc, char** argv)
 {
@@ -109,6 +151,9 @@ main(int argc, char** argv)
 
   rtems_shell_add_cmd ("pruss", "misc",
                        "Test PRU", rtems_pruss_shell_command);
+
+  rtems_shell_add_cmd ("loader", "misc",
+                       "Test PRU", shell_pruss_loader);
 
   if (net_config("cpsw0", "bbbpru", NET_IP, NET_NETMASK, NET_GATEWAY)) {
     int  timeout = 10;
