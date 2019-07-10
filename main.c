@@ -8,11 +8,14 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 #include <rtems/console.h>
 #include <rtems/rtems-debugger.h>
 #include <rtems/rtems-debugger-remote-tcp.h>
 #include <rtems/shell.h>
+
+#include <rtems/rtems-fdt-shell.h>
 
 #include<bsp/pruss-shell.h>
 
@@ -148,6 +151,8 @@ main(int argc, char** argv)
   printf("\nRTEMS BBB PRU Tester\n\n");
 
   rtems_bsd_initialize();
+
+  rtems_fdt_add_shell_command();
 
   rtems_shell_add_cmd ("pruss", "misc",
                        "Test PRU", rtems_pruss_shell_command);

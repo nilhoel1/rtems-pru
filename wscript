@@ -43,7 +43,7 @@ def build(bld):
                 features = 'c',
                 source = ['ti/prussdrv.c'],
                 includes = includes,
-                clags = cflags)
+                cflags = cflags)
 
     bld(features = 'c cprogram',
         target = exe,
@@ -51,9 +51,11 @@ def build(bld):
                   'init.c',
                   'pruss-shell.c'],
         includes = includes,
-        clags = cflags,
+        cflags = cflags,
         use = ['ti'],
-        lib = ['debugger'])
+        lib = ['debugger',
+                'rtemscpu',
+                'z'])
 
     bimg = ' '.join(bld.env.BOOT_IMAGE)
     bbsp = 'u-boot-beaglebone'
