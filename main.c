@@ -17,7 +17,7 @@
 
 #include <rtems/rtems-fdt-shell.h>
 
-#include<bsp/pruss-shell.h>
+#include <bsp/pruss-shell.h>
 
 #include <bsp/prussdrv.h>
 #include <bsp/pruss_intc_mapping.h>
