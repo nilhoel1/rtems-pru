@@ -41,7 +41,7 @@ def build(bld):
 
     bld.objects(name = 'ti',
                 features = 'c',
-                source = ['ti/prussdrv.c'],
+                source = ['ti/pru.c'],
                 includes = includes,
                 cflags = cflags)
 
