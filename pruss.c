@@ -35,7 +35,17 @@
 
 static d_open_t			ti_pruss_irq_open;
 static d_read_t			ti_pruss_irq_read;
+static d_poll_t			ti_pruss_irq_poll;
 
+static device_probe_t		ti_pruss_probe;
+static device_attach_t		ti_pruss_attach;
+static device_detach_t		ti_pruss_detach;
+static void			ti_pruss_intr(void *);
+static d_open_t			ti_pruss_open;
+static d_mmap_t			ti_pruss_mmap;
+static void 			ti_pruss_irq_kqread_detach(struct knote *);
+static int 			ti_pruss_irq_kqevent(struct knote *, long);
+static d_kqfilter_t		ti_pruss_irq_kqfilter;
 static void			ti_pruss_privdtor(void *data);
 
 #define	TI_PRUSS_PRU_IRQS 2
@@ -69,6 +79,15 @@ struct ti_pruss_irqsc
 	struct ts_ring_buf	tstamps;
 };
 
+static struct cdevsw ti_pruss_cdevirq = {
+	.d_version =	D_VERSION,
+	.d_name =	"ti_pruss_irq",
+	.d_open =	ti_pruss_irq_open,
+	.d_read =	ti_pruss_irq_read,
+	.d_poll =	ti_pruss_irq_poll,
+	.d_kqfilter =	ti_pruss_irq_kqfilter,
+};
+
 
 
 static int
@@ -86,6 +105,24 @@ ti_pruss_irq_open(struct cdev *dev, int oflags, int devtype, struct thread *td)
 	irqs->idx = sc->tstamps.ctl.idx;
 
 	return devfs_set_cdevpriv(irqs, ti_pruss_privdtor);
+}
+
+static int
+ti_pruss_irq_poll(struct cdev *dev, int events, struct thread *td)
+{
+	struct ctl* irqs;
+	struct ti_pruss_irqsc *sc;
+	sc = dev->si_drv1;
+
+	devfs_get_cdevpriv((void**)&irqs);
+
+	if (events & (POLLIN | POLLRDNORM)) {
+		if (sc->tstamps.ctl.cnt != irqs->cnt)
+			return events & (POLLIN | POLLRDNORM);
+		else
+			selrecord(td, &sc->sc_selinfo);
+	}
+	return 0;
 }
 
 static int
@@ -151,6 +188,59 @@ ti_pruss_irq_read(struct cdev *cdev, struct uio *uio, int ioflag)
 	return (error);
 }
 
+static struct filterops ti_pruss_kq_read = {
+	.f_isfd = 1,
+	.f_detach = ti_pruss_irq_kqread_detach,
+	.f_event = ti_pruss_irq_kqevent,
+};
+
+static void
+ti_pruss_irq_kqread_detach(struct knote *kn)
+{
+	struct ti_pruss_irqsc *sc = kn->kn_hook;
+
+	knlist_remove(&sc->sc_selinfo.si_note, kn, 0);
+}
+
+static int
+ti_pruss_irq_kqevent(struct knote *kn, long hint)
+{
+    struct ti_pruss_irqsc* irq_sc;
+    int notify;
+
+    irq_sc = kn->kn_hook;
+
+    if (hint > 0)
+        kn->kn_data = hint - 2;
+
+    if (hint > 0 || irq_sc->last > 0)
+        notify = 1;
+    else
+        notify = 0;
+
+    irq_sc->last = hint;
+
+    return (notify);
+}
+
+static int
+ti_pruss_irq_kqfilter(struct cdev *cdev, struct knote *kn)
+{
+	struct ti_pruss_irqsc *sc = cdev->si_drv1;
+
+	switch (kn->kn_filter) {
+	case EVFILT_READ:
+		kn->kn_hook = sc;
+		kn->kn_fop = &ti_pruss_kq_read;
+		knlist_add(&sc->sc_selinfo.si_note, kn, 0);
+		break;
+	default:
+		return (EINVAL);
+	}
+
+	return (0);
+}
+
 
 static const rtems_filesystem_file_handlers_r pruss_irq_handler = {
   .open_h = ti_pruss_irq_open,
@@ -166,7 +256,7 @@ static const rtems_filesystem_file_handlers_r pruss_irq_handler = {
   .fcntl_h = rtems_filesystem_default_fcntl,
   .kqfilter_h = rtems_filesystem_default_kqfilter,
   .mmap_h = rtems_filesystem_default_mmap,
-  .poll_h = rtems_filesystem_default_poll,
+  .poll_h = ti_pruss_irq_poll,
   .readv_h = rtems_filesystem_default_readv,
   .writev_h = rtems_filesystem_default_writev
 };
