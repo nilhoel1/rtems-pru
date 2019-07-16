@@ -49,7 +49,7 @@ def build(bld):
         target = exe,
         source = ['main.c',
                   'init.c',
-                  'pruss-shell.c'],
+                  'pruss.c'],
         includes = includes,
         cflags = cflags,
         use = ['ti'],
