@@ -58,7 +58,7 @@ __FBSDID("$FreeBSD$");
 #include <dev/ofw/ofw_bus_subr.h>
 
 #include <arm/ti/ti_prcm.h>
-#include <arm/ti/ti_pruss.h>
+#include "ti_pruss.h"
 
 #ifdef DEBUG
 #define	DPRINTF(fmt, ...)	do {	\

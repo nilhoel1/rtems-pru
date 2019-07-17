@@ -1,6 +1,8 @@
 # rtems-pru
 Application for developing/testing the pru-drivers on rtems.
 
+## Dependencies
+This application needs the mmap patch in rtems-libbsd, that is currently not mainline.
 ## Building the Application
 The Application can be build with the following commands.
 All commands are run from repository tree.
