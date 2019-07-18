@@ -30,12 +30,10 @@
 #include <machine/rtems-bsd-kernel-space.h>
 #else /* __rtems__ */
 
-#endif /* __rtems */
+#endif /* __rtems__ */
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
-//#include <rtems/bsd/local/opt_bus.h>//
-//#include <rtems/bsd/local/opt_ddb.h>//
 
 #include <sys/poll.h>
 #include <sys/time.h>
@@ -59,8 +57,8 @@ __FBSDID("$FreeBSD$");
 #include <machine/bus.h>
 #include <machine/cpu.h>
 #ifndef __rtems__
-#include <machine/frame.h> //can't be found.
-#endif /* __rtems */
+#include <machine/frame.h>
+#endif /* __rtems__ */
 #include <machine/intr.h>
 #include <machine/atomic.h>
 
@@ -68,7 +66,7 @@ __FBSDID("$FreeBSD$");
 #include <dev/ofw/openfirm.h>
 #include <dev/ofw/ofw_bus.h>
 #include <dev/ofw/ofw_bus_subr.h>
-#endif /* __rtems */
+#endif /* __rtems__ */
 
 #ifdef __rtems__
 #include <rtems/imfs.h>
@@ -81,7 +79,7 @@ __FBSDID("$FreeBSD$");
 #else
 #include <arm/ti/ti_prcm.h>
 #include <arm/ti/ti_pruss.h>
-#endif /* __rtems */
+#endif /* __rtems__ */
 
 #ifdef DEBUG
 #define	DPRINTF(fmt, ...)	do {	\
@@ -160,14 +158,12 @@ struct ti_pruss_softc {
 	bool			sc_glob_irqen;
 };
 
-#ifdef __rtems__
 static struct cdevsw ti_pruss_cdevsw = {
 	.d_version =	D_VERSION,
 	.d_name =	"ti_pruss",
 	.d_open =	ti_pruss_open,
 	.d_mmap =	ti_pruss_mmap,
 };
-#endif /* __rtems */
 
 static device_method_t ti_pruss_methods[] = {
 	DEVMETHOD(device_probe,		ti_pruss_probe),
@@ -185,9 +181,8 @@ static driver_t ti_pruss_driver = {
 
 static devclass_t ti_pruss_devclass;
 
-//DRIVER_MODULE(ti_pruss, simplebus, ti_pruss_driver, ti_pruss_devclass, 0, 0);
-//MODULE_DEPEND(ti_pruss, ti_prcm, 1, 1, 1);
-//probe, attach and detach missing.
+DRIVER_MODULE(ti_pruss, simplebus, ti_pruss_driver, ti_pruss_devclass, 0, 0);
+MODULE_DEPEND(ti_pruss, ti_prcm, 1, 1, 1);
 
 static struct resource_spec ti_pruss_irq_spec[] = {
 	{ SYS_RES_IRQ,	    0,  RF_ACTIVE },
@@ -377,9 +372,9 @@ ti_pruss_map_write(struct ti_pruss_softc *sc, uint32_t basereg, uint8_t index, u
 {
 	#ifdef __rtems__
 	const size_t regadr = ((basereg + index) & (~0x03));
-	#else /* __rtems */
+	#else /* __rtems__ */
 	const size_t regadr = basereg + index & ~0x03;
-	#endif /* __rtems */
+	#endif /* __rtems__ */
 	const size_t bitpos = (index & 0x03) * 8;
 	uint32_t rmw = ti_pruss_reg_read(sc, regadr);
 	rmw = (rmw & ~( 0xF << bitpos)) | ( (content & 0xF) << bitpos);
@@ -743,9 +738,9 @@ ti_pruss_mmap(struct cdev *cdev, vm_ooffset_t offset, vm_paddr_t *paddr,
 	*paddr = rman_get_start(sc->sc_mem_res) + offset;
 	#ifdef __rtems__
 	*memattr = ((vm_memattr_t)3);
-	#else /* __rtems */
+	#else /* __rtems__ */
 	*memattr = VM_MEMATTR_UNCACHEABLE ;
-	#endif /* __rtems */
+	#endif /* __rtems__ */
 
 	return (0);
 }
@@ -805,7 +800,7 @@ ti_pruss_irq_kqfilter(struct cdev *cdev, struct knote *kn)
 
 #ifndef __rtems__
 static const rtems_filesystem_file_handlers_r pruss_irq_handler = {
-  .open_h = ti_pruss_open,
+  .open_h = rtems_filesystem_default_open,
   .close_h = rtems_filesystem_default_close,
   .read_h = rtems_filesystem_default_read,
   .write_h = rtems_filesystem_default_write,
@@ -816,10 +811,10 @@ static const rtems_filesystem_file_handlers_r pruss_irq_handler = {
   .fsync_h = rtems_filesystem_default_fsync_or_fdatasync,
   .fdatasync_h = rtems_filesystem_default_fsync_or_fdatasync,
   .fcntl_h = rtems_filesystem_default_fcntl,
-  .kqfilter_h = ti_pruss_irq_kqfilter,
-  .mmap_h = ti_pruss_mmap,
+  .kqfilter_h = rtems_filesystem_default_kqfilter,
+  .mmap_h = rtems_filesystem_default_mmap,
   .poll_h = rtems_filesystem_default_poll,
   .readv_h = rtems_filesystem_default_readv,
   .writev_h = rtems_filesystem_default_writev
 };
-#endif /* __rtems */
+#endif /* __rtems__ */
