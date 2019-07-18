@@ -1,3 +1,5 @@
+#include <machine/rtems-bsd-kernel-space.h>
+
 /*-
  * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
  *
@@ -26,11 +28,6 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifdef __rtems__
-#include <machine/rtems-bsd-kernel-space.h>
-#else /* __rtems__ */
-
-#endif /* __rtems__ */
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
@@ -58,15 +55,15 @@ __FBSDID("$FreeBSD$");
 #include <machine/cpu.h>
 #ifndef __rtems__
 #include <machine/frame.h>
+#else /* __rtems__ */
+#include <machine/vm.h>
 #endif /* __rtems__ */
 #include <machine/intr.h>
 #include <machine/atomic.h>
 
-#ifndef __rtems__
 #include <dev/ofw/openfirm.h>
 #include <dev/ofw/ofw_bus.h>
 #include <dev/ofw/ofw_bus_subr.h>
-#endif /* __rtems__ */
 
 #ifdef __rtems__
 #include <rtems/imfs.h>
@@ -75,7 +72,7 @@ __FBSDID("$FreeBSD$");
 
 #ifdef __rtems__
 #include "pruss.h"
-#include <bsp/ti_prcm.h>
+#include "sys/arm/ti/ti_prcm.h"
 #else
 #include <arm/ti/ti_prcm.h>
 #include <arm/ti/ti_pruss.h>
@@ -736,11 +733,7 @@ ti_pruss_mmap(struct cdev *cdev, vm_ooffset_t offset, vm_paddr_t *paddr,
 	if (offset >= rman_get_size(sc->sc_mem_res))
 		return (ENOSPC);
 	*paddr = rman_get_start(sc->sc_mem_res) + offset;
-	#ifdef __rtems__
-	*memattr = ((vm_memattr_t)3);
-	#else /* __rtems__ */
 	*memattr = VM_MEMATTR_UNCACHEABLE ;
-	#endif /* __rtems__ */
 
 	return (0);
 }
@@ -797,24 +790,3 @@ ti_pruss_irq_kqfilter(struct cdev *cdev, struct knote *kn)
 
 	return (0);
 }
-
-#ifndef __rtems__
-static const rtems_filesystem_file_handlers_r pruss_irq_handler = {
-  .open_h = rtems_filesystem_default_open,
-  .close_h = rtems_filesystem_default_close,
-  .read_h = rtems_filesystem_default_read,
-  .write_h = rtems_filesystem_default_write,
-  .ioctl_h = rtems_filesystem_default_ioctl,
-  .lseek_h = rtems_filesystem_default_lseek,
-  .fstat_h = IMFS_stat,
-  .ftruncate_h = rtems_filesystem_default_ftruncate,
-  .fsync_h = rtems_filesystem_default_fsync_or_fdatasync,
-  .fdatasync_h = rtems_filesystem_default_fsync_or_fdatasync,
-  .fcntl_h = rtems_filesystem_default_fcntl,
-  .kqfilter_h = rtems_filesystem_default_kqfilter,
-  .mmap_h = rtems_filesystem_default_mmap,
-  .poll_h = rtems_filesystem_default_poll,
-  .readv_h = rtems_filesystem_default_readv,
-  .writev_h = rtems_filesystem_default_writev
-};
-#endif /* __rtems__ */
