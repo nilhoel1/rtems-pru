@@ -53,8 +53,8 @@ __FBSDID("$FreeBSD$");
 #include <dev/ofw/ofw_bus_subr.h> 
 
 #ifdef __rtems__
-#include "ti_cpuid.h"
 #include "tivar.h"
+#include "ti_cpuid.h"
 #else /* __rtems__ */
 #include <arm/ti/tivar.h>
 #include <arm/ti/ti_cpuid.h>
@@ -77,6 +77,8 @@ __FBSDID("$FreeBSD$");
 #define OMAP4_STD_FUSE_PROD_ID_1   0x2218
 
 #define OMAP3_ID_CODE              0xA204
+
+int _ti_chip;
 
 static uint32_t chip_revision = 0xffffffff;
 
@@ -136,12 +138,10 @@ omap4_get_revision(void)
 	 * have the wrong id code and report themselves as ES1.0 silicon.  So used
 	 * the ARM cpuid to get the correct revision.
 	 */
-#ifndef __rtems__
 	if (revision == 0) {
 		id_code = cp15_midr_get();
 		revision = (id_code & 0xf) - 1;
 	}
-#endif /* __Rtems__ */
 
 	switch (hawkeye) {
 	case 0xB852:
@@ -289,7 +289,6 @@ am335x_get_revision(void)
 static void
 ti_cpu_ident(void *dummy)
 {
-#ifndef __rtems__
 	if (!ti_soc_is_supported())
 		return;
 	switch(ti_chip()) {
@@ -302,7 +301,6 @@ ti_cpu_ident(void *dummy)
 	default:
 		panic("Unknown chip type, fixme!\n");
 	}
-#endif /* __rtems__ */
 }
 
 SYSINIT(ti_cpu_ident, SI_SUB_CPU, SI_ORDER_SECOND, ti_cpu_ident, NULL);

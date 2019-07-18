@@ -1,3 +1,5 @@
+#include <machine/rtems-bsd-kernel-space.h>
+
 /*-
  * SPDX-License-Identifier: BSD-4-Clause
  *
@@ -40,10 +42,6 @@
  * and interface clocks to the various on-chip modules.
  *
  */
-#ifdef __rtems__
-#include <machine/rtems-bsd-kernel-space.h>
-#endif /* __rtems__ */
-
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
