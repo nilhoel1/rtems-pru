@@ -43,6 +43,15 @@ __FBSDID("$FreeBSD$");
 
 #include <machine/bus.h>
 #include <machine/cpu.h>
+#ifdef __rtems__
+#ifdef _KERNEL
+#if __ARM_ARCH >= 6
+#include "../../../freebsd/sys/arm/include/cpu-v6.h"
+#else
+#include "../../../freebsd/sys/arm/include/cpu-v4.h"
+#endif/* __ARM_ARCH >= 6 */
+#endif /* _KERNEL  */
+#endif /* __rtems__ */
 #include <machine/fdt.h>
 #include "../../../rtemsbsd/include/machine/fdt.h"
 #include <machine/resource.h>
