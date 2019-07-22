@@ -15,8 +15,6 @@
 #include <rtems/rtems-debugger-remote-tcp.h>
 #include <rtems/shell.h>
 
-#include <rtems/rtems-fdt-shell.h>
-
 #include <machine/rtems-bsd-config.h>
 
 #include "pruss.h"
@@ -110,6 +108,8 @@ main(int argc, char** argv)
   printf("\nRTEMS BBB PRU Tester\n\n");
 
   rtems_bsd_initialize();
+
+  printf("\nLibBSD initialized\n\n");
 
   if (net_config("cpsw0", "bbbpru", NET_IP, NET_NETMASK, NET_GATEWAY)) {
     int  timeout = 10;
