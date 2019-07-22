@@ -3,6 +3,11 @@ Application for developing/testing the pru-drivers on rtems.
 
 ## Dependencies
 This application needs the mmap patch in rtems-libbsd, that is currently not mainline.
+Also rtems-libbsd has to be build with the following argument.
+```
+--buildset=buildset/everything.ini
+```
+
 ## Building the Application
 The Application can be build with the following commands.
 All commands are run from repository tree.
