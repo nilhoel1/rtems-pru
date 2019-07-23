@@ -72,9 +72,9 @@ __FBSDID("$FreeBSD$");
 
 #ifdef __rtems__
 #include "pruss.h"
-#include "sys/arm/ti/ti_prcm.h"
-#else
 #include <arm/ti/ti_prcm.h>
+#include <arm/ti/ti_prcm.c>//only needed for debbuging with printk.
+#else
 #include <arm/ti/ti_pruss.h>
 #endif /* __rtems__ */
 
@@ -108,6 +108,25 @@ static void			ti_pruss_privdtor(void *data);
 #define	TI_PRUSS_EVENTS 64
 #define	NOT_SET_STR "NONE"
 #define	TI_TS_ARRAY 16
+
+int
+my_attach(void)
+{
+
+	device_t dev;
+	device_t child;
+	dev = device_find_child(root_bus, "nexus", 0);
+	if (dev == NULL) {
+		printf("Error: dev == NULL");
+		return ENXIO;
+	}
+	child = device_add_child(dev, "cpsw0", -1);
+	if (child == NULL) {
+		printf("Error: dev == NULL");
+		return ENXIO;
+	}
+	return device_probe_and_attach(child);
+}
 
 struct ctl
 {
