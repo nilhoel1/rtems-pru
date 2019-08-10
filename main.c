@@ -16,8 +16,7 @@
 #include <rtems/shell.h>
 
 #include <machine/rtems-bsd-config.h>
-
-#include "pruss.h"
+#include <libpru.h>
 
 extern rtems_shell_cmd_t rtems_shell_DEBUGGER_Command;
 
@@ -106,7 +105,7 @@ main(int argc, char** argv)
   rtems_status_code sc = RTEMS_SUCCESSFUL;
 
   printf("\nRTEMS BBB PRU Tester\n\n");
-
+  
   rtems_bsd_initialize();
 
   printf("\nLibBSD initialized\n\n");

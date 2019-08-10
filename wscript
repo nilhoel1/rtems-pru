@@ -41,15 +41,14 @@ def build(bld):
 
     bld.objects(name = 'ti',
                 features = 'c',
-                source = ['ti/pru.c'],
+                source = ['libpru/pru.c'],
                 includes = includes,
                 cflags = cflags)
 
     bld(features = 'c cprogram',
         target = exe,
         source = ['main.c',
-                  'init.c',
-                  'pruss.c'],
+                  'init.c',],
         includes = includes,
         cflags = cflags,
         use = ['ti'],

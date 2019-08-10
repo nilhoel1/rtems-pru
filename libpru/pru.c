@@ -29,7 +29,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
-//#include <block.h> Replace with rtems blockdevice driver
+//#include <block.h> Block related functions for GDB.
 #include <pthread.h>
 
 #include <sys/types.h>
@@ -37,9 +37,9 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-#include <bsp/libpru.h>
-#include <bsp/pru-private.h>
-#include <bsp/ti-pru.h>
+#include "libpru.h"
+#include "pru-private.h"
+#include "ti-pru.h"
 
 int libpru_debug = 0;
 

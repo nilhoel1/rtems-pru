@@ -21,6 +21,7 @@ rtems_task Init(rtems_task_argument ignored) {
 /*
  * Configure LibBSD.
  */
+#define BUS_DEBUG
 #define RTEMS_BSD_CONFIG_DOMAIN_PAGE_MBUFS_SIZE (64 * 1024 * 1024)
 #define RTEMS_BSD_CONFIG_NET_PF_UNIX
 #define RTEMS_BSD_CONFIG_NET_IP_MROUTE
@@ -52,6 +53,7 @@ rtems_task Init(rtems_task_argument ignored) {
 #include <rtems/netcmds-config.h>
 
 #include <bsp/irq-info.h>
+//#include <bsp/nexus-devices.h>
 
 #define CONFIGURE_SHELL_USER_COMMANDS \
   &bsp_interrupt_shell_command, \
