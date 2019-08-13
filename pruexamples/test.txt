@@ -1,0 +1,10 @@
+Source File 1 : 'test.p' (3 Instructions Generated)
+
+    1 :                   : .origin 0
+    2 :                   : .entrypoint START
+    3 :                   : START:
+    4 : 0x0000 0x2effbb80 : ZERO &r0, 120
+    5 : 0x0001 0x240020ff : MOV r31, (1 << 5) 
+    6 : 0x0002 0x2a000000 : HALT
+    7 :                   : 
+

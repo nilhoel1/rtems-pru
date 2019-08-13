@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <string.h>
 #include <libpru/libpru.h>
+#include <pructl/pructl.h>
 
 static void __attribute__((noreturn))
 usage(void)

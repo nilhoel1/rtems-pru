@@ -29,7 +29,9 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
-//#include <block.h> Block related functions for GDB.
+#ifndef __rtems__
+#include <block.h>
+#endif /* __rtems__ */
 #include <pthread.h>
 
 #include <sys/types.h>
