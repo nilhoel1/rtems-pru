@@ -39,21 +39,29 @@ def build(bld):
     cflags = ['-O1','-g', '-Wall']
     includes = ['include']
 
-    bld.objects(name = 'ti',
+    bld.objects(name = 'libpru',
                 features = 'c',
-                source = ['ti/prussdrv.c'],
+                source = ['libpru/pru.c'],
                 includes = includes,
-                clags = cflags)
+                cflags = cflags)
+
+    bld.objects(name = 'pructl',
+                features = 'c',
+                source = ['pructl/pructl.c'],
+                includes = includes,
+                cflags = cflags)
 
     bld(features = 'c cprogram',
         target = exe,
         source = ['main.c',
-                  'init.c',
-                  'pruss-shell.c'],
+                  'init.c',],
         includes = includes,
-        clags = cflags,
-        use = ['ti'],
-        lib = ['debugger'])
+        cflags = cflags,
+        use = ['libpru',
+                'pructl'],
+        lib = ['debugger',
+                'rtemscpu',
+                'z'])
 
     bimg = ' '.join(bld.env.BOOT_IMAGE)
     bbsp = 'u-boot-beaglebone'

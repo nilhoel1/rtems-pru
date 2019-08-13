@@ -43,6 +43,7 @@ rtems_pruss_shell_status (const rtems_printer* printer,
                         int                  argc,
                         char*                argv[])
 {
+  return 0;
 }
 
 /* Tries to Initialise PRU0 and returns -1 if failed. */
@@ -86,7 +87,7 @@ rtems_pruss_shell_run (const rtems_printer* printer,
                         int                  argc,
                         char*                argv[])
 {
-
+  return 0;
 }
 
 int
@@ -94,6 +95,7 @@ rtems_pruss_shell_stop (const rtems_printer* printer,
                         int                  argc,
                         char*                argv[])
 {
+  return 0;
 }
 
 /**
