@@ -39,9 +39,15 @@ def build(bld):
     cflags = ['-O1','-g', '-Wall']
     includes = ['include']
 
-    bld.objects(name = 'ti',
+    bld.objects(name = 'libpru',
                 features = 'c',
                 source = ['libpru/pru.c'],
+                includes = includes,
+                cflags = cflags)
+
+    bld.objects(name = 'pructl',
+                features = 'c',
+                source = ['pructl/pructl.c'],
                 includes = includes,
                 cflags = cflags)
 
@@ -51,7 +57,8 @@ def build(bld):
                   'init.c',],
         includes = includes,
         cflags = cflags,
-        use = ['ti'],
+        use = ['libpru',
+                'pructl'],
         lib = ['debugger',
                 'rtemscpu',
                 'z'])

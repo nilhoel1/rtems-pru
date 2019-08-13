@@ -28,7 +28,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <libpru.h>
+#include <libpru/libpru.h>
 
 static void __attribute__((noreturn))
 usage(void)
@@ -39,7 +39,7 @@ usage(void)
 }
 
 int
-main(int argc, char **argv)
+pructl(int argc, char **argv)
 {
 	int ch;
 	int reset, enable, disable, wait;

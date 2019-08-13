@@ -16,7 +16,7 @@
 #include <rtems/shell.h>
 
 #include <machine/rtems-bsd-config.h>
-#include <libpru.h>
+#include <libpru/libpru.h>
 
 extern rtems_shell_cmd_t rtems_shell_DEBUGGER_Command;
 
