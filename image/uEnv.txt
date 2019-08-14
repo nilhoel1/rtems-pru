@@ -1,0 +1,4 @@
+setenv bootdelay 5
+uenvcmd=run boot_rtems; reset;
+rtems_banner=echo ""; echo "RTEMS u-boot-beaglebone (arm-ti-am335x_evm)"; echo " rtems-boot-image v5.0.not_released"; echo "";
+boot_rtems=run rtems_banner; echo "Loading pru.exe.img"; load mmc 0 0x82000000 pru.exe.img; echo "Loading am335x-boneblack.dtb"; load mmc 0 0x88000000 am335x-boneblack.dtb; echo "Loading AM335X-PRU-UIO-00A0.dtbo"; load mmc 0 0x880f0000 AM335X-PRU-UIO-00A0.dtbo; echo "Applying fdt overlay"; fdt addr 0x88000000; fdt resize 65536; fdt apply 0x880f0000;  bootm 0x82000000 - 0x88000000

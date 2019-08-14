@@ -31,3 +31,22 @@ All commands are run from repository tree.
 ```
 
 Now the executable can be found in the build folder.
+
+## Creating the Image
+Create an image with :
+```
+dd if=PATH_TO_SD-IMAGE_IN_FDT_FOLDER of=PATH_TO_SD_CARD bs=1M
+```
+Also tools like etcher can be used. 
+The image with the device tree can be found in the fdt folder.
+When ever the app is rebuild it is only required to overwrite the pru.exe.img on the sd card with the one in the build folder.
+
+## Using the APP
+When all dependencies are installed and the app builded well, than after booting you should find the device ```dev/pruss0``` and the sd card should be mounted in ```/media```. I am currently working on a shell program to load pru code and execute it. When one is provided it is necessary to map the pru interupts to IRQ with:
+```
+sysctl dev.ti_pruss.0.irq.2.channel=2 # mapping channel 2 to irq2
+sysctl dev.ti_pruss.0.irq.2.event=16 # mapping event 16 to irq2
+sysctl dev.ti_pruss.0.irq.2.enable=1 # enable the irq2
+sysctl dev.ti_pruss.0.global_interrupt_enable=1 # enable PRU global interrupts
+```
+This shoud create the device  ```/dev/pruss0.irqN```, where N is the interrupt channel and with the above example this should be 2. When runing test.bin from the pruexamples a interrupt should be triggered.
