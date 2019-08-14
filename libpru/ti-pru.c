@@ -37,9 +37,9 @@
 #include <sys/mman.h>
 #include <sys/cdefs.h>
 
-#include <libpru.h>
-#include <pru-private.h>
-#include <ti-pru.h>
+#include <libpru/libpru.h>
+#include <libpru/pru-private.h>
+#include <libpru/ti-pru.h>
 
 static uint8_t
 ti_reg_read_1(char *mem, unsigned int reg)

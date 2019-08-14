@@ -41,7 +41,8 @@ def build(bld):
 
     bld.objects(name = 'libpru',
                 features = 'c',
-                source = ['libpru/pru.c'],
+                source = ['libpru/pru.c',
+                            'libpru/ti-pru.c'],
                 includes = includes,
                 cflags = cflags)
 

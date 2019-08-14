@@ -39,9 +39,9 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-#include "libpru.h"
-#include "pru-private.h"
-#include "ti-pru.h"
+#include <libpru/libpru.h>
+#include <libpru/pru-private.h>
+#include <libpru/ti-pru.h>
 
 int libpru_debug = 0;
 

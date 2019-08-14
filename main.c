@@ -20,7 +20,7 @@
 
 #include <machine/rtems-bsd-config.h>
 
-//#include <pructl/pructl.h>
+#include <pructl/pructl.h>
 
 extern rtems_shell_cmd_t rtems_shell_DEBUGGER_Command;
 
@@ -194,8 +194,8 @@ main(int argc, char** argv)
 
   libbsdhelper_init_sd_card(PRIO_MEDIA_SERVER);
 
-//    rtems_shell_add_cmd ("pructl", "misc",
-//                       "Test PRU", pructl);
+    rtems_shell_add_cmd ("pructl", "misc",
+                       "Test PRU", pructl);
 
   /* Wait for the SD card */
 	sc = libbsdhelper_wait_for_sd();

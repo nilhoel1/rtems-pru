@@ -35,7 +35,7 @@ static void __attribute__((noreturn))
 usage(void)
 {
 	fprintf(stderr, "usage: %s -t type [-p pru-number] [-edrw] [program]\n",
-	    getprogname());
+	    "pructl");
 	exit(1);
 }
 
@@ -82,30 +82,30 @@ pructl(int argc, char **argv)
 	argv += optind;
 	if (enable && disable) {
 		fprintf(stderr, "%s: conflicting options: -e and -d\n",
-		    getprogname());
+		    "pructl");
 		usage();
 	}
 	if (type == NULL) {
-		fprintf(stderr, "%s: missing type (-t)\n", getprogname());
+		fprintf(stderr, "%s: missing type (-t)\n", "pructl");
 		usage();
 	}
 	pru_type = pru_name_to_type(type);
 	if (pru_type == PRU_TYPE_UNKNOWN) {
-		fprintf(stderr, "%s: invalid type '%s'\n", getprogname(),
+		fprintf(stderr, "%s: invalid type '%s'\n", "pructl",
 		    type);
 		return 2;
 	}
 	pru = pru_alloc(pru_type);
 	if (pru == NULL) {
 		fprintf(stderr, "%s: unable to allocate PRU structure: %s\n",
-		    getprogname(), strerror(errno));
+		    "pructl", strerror(errno));
 		return 3;
 	}
 	if (reset) {
 		error = pru_reset(pru, pru_number);
 		if (error) {
 			fprintf(stderr, "%s: unable to reset PRU %d\n",
-			    getprogname(), pru_number);
+			    "pructl", pru_number);
 			return 4;
 		}
 	}
@@ -113,7 +113,7 @@ pructl(int argc, char **argv)
 		error = pru_upload(pru, pru_number, argv[0]);
 		if (error) {
 			fprintf(stderr, "%s: unable to upload %s: %s\n",
-			    getprogname(), argv[0], strerror(errno));
+			    "pructl", argv[0], strerror(errno));
 			return 5;
 		}
 	}
@@ -121,7 +121,7 @@ pructl(int argc, char **argv)
 		error = pru_enable(pru, pru_number, 0);
 		if (error) {
 			fprintf(stderr, "%s: unable to enable PRU %d\n",
-			    getprogname(), pru_number);
+			    "pructl", pru_number);
 			return 6;
 		}
 	}
@@ -129,7 +129,7 @@ pructl(int argc, char **argv)
 		error = pru_disable(pru, pru_number);
 		if (error) {
 			fprintf(stderr, "%s: unable to disable PRU %d\n",
-			    getprogname(), pru_number);
+			    "pructl", pru_number);
 			return 7;
 		}
 	}
@@ -137,10 +137,12 @@ pructl(int argc, char **argv)
 		error = pru_wait(pru, pru_number);
 		if (error) {
 			fprintf(stderr, "%s: unable to wait for PRU %d\n",
-			    getprogname(), pru_number);
+			    "pructl", pru_number);
 			return 8;
 		}
 	}
 	pru_free(pru);
+
+	return 0;
 }
 
