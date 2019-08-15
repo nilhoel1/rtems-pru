@@ -114,3 +114,9 @@ sysctl dev.ti_pruss.0.irq.2.enable=1 # enable the irq2
 sysctl dev.ti_pruss.0.global_interrupt_enable=1 # enable PRU global interrupts
 ```
 This shoud create the device  ```/dev/pruss0.irqN```, where N is the interrupt channel and with the above example this should be 2. When runing test.bin from the pruexamples a interrupt should be triggered.
+
+The pru example test.p can then be loaded to pru with:
+```
+pructl -p 0  -t ti -er test.bin
+```
+But make sure to be in the same directoire as the test.bin.
