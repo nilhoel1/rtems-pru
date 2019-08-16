@@ -10,6 +10,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <inttypes.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
 
 #include <rtems/console.h>
 #include <rtems/rtems-debugger.h>
@@ -20,7 +23,7 @@
 
 #include <machine/rtems-bsd-config.h>
 
-#include <pructl/pructl.h>
+#include <libpru/libpru.h>
 
 extern rtems_shell_cmd_t rtems_shell_DEBUGGER_Command;
 
@@ -177,6 +180,131 @@ libbsdhelper_wait_for_sd(void)
 	assert(sc == RTEMS_SUCCESSFUL || sc == RTEMS_TIMEOUT);
 
 	return sc;
+}
+
+
+int
+usage(void)
+{
+	fprintf(stderr, "usage: %s -t type [-p pru-number] [-edrw] [program]\n",
+	    "pructl");
+	return 99;
+}
+
+int
+pructl(int argc, char **argv)
+{
+	printk("===== pructl =====\n");
+	int ch;
+	int reset, enable, disable, wait;
+	const char *type;
+	unsigned int pru_number;
+	pru_type_t pru_type;
+	pru_t pru;
+        int error;
+
+	reset = enable = disable = pru_number = wait = 0;
+	type = NULL;
+	error = 0;
+	while ((ch = getopt(argc, argv, "t:p:edrw")) != -1) {
+		switch (ch) {
+		case 't':
+			type = optarg;
+			break;
+		case 'p':
+			pru_number = (unsigned int)strtoul(optarg, NULL, 10);
+			break;
+		case 'e':
+			enable = 1;
+			break;
+		case 'd':
+			disable = 1;
+			break;
+		case 'r':
+			reset = 1;
+			break;
+		case 'w':
+			wait = 1;
+			break;
+		case '?':
+		default:
+			return usage();
+		}
+	}
+	argc -= optind;
+	argv += optind;
+	if (enable && disable) {
+		fprintf(stderr, "%s: conflicting options: -e and -d\n",
+		    "pructl");
+		return usage();
+	}
+	if (type == NULL) {
+		fprintf(stderr, "%s: missing type (-t)\n", "pructl");
+		return usage();
+	}
+  printk("=== pru_name_to_type\n");
+	pru_type = pru_name_to_type(type);
+	if (pru_type == PRU_TYPE_UNKNOWN) {
+		fprintf(stderr, "%s: invalid type '%s'\n", "pructl",
+		    type);
+		return 2;
+	}
+  printk("=== pru_alloc\n");
+	pru = pru_alloc(pru_type);
+	if (pru == NULL) {
+		fprintf(stderr, "%s: unable to allocate PRU structure: %s\n",
+		    "pructl", strerror(errno));
+		return 3;
+	}
+	if (reset) {
+    printk("=== pru_reset\n");
+		error = pru_reset(pru, pru_number);
+		if (error) {
+			fprintf(stderr, "%s: unable to reset PRU %d\n",
+			    "pructl", pru_number);
+			return 4;
+		}
+	}
+	if (argc > 0) {
+    printk("=== pru_upload\n");
+		error = pru_upload(pru, pru_number, argv[0]);
+		if (error) {
+			fprintf(stderr, "%s: unable to upload %s: %s\n",
+			    "pructl", argv[0], strerror(errno));
+			return 5;
+		}
+	}
+	if (enable) {
+    printk("=== pru_enable\n");
+		error = pru_enable(pru, pru_number, 0);
+		if (error) {
+			fprintf(stderr, "%s: unable to enable PRU %d\n",
+			    "pructl", pru_number);
+			return 6;
+		}
+	}
+	if (disable) {
+    printk("=== pru_disable\n");
+		error = pru_disable(pru, pru_number);
+		if (error) {
+			fprintf(stderr, "%s: unable to disable PRU %d\n",
+			    "pructl", pru_number);
+			return 7;
+		}
+	}
+	if (wait) {
+    printk("=== pru_wait\n");
+		error = pru_wait(pru, pru_number);
+		if (error) {
+			fprintf(stderr, "%s: unable to wait for PRU %d\n",
+			    "pructl", pru_number);
+			return 8;
+		}
+	}
+	printk("===== Free PRu =====\n");
+	pru_free(pru);
+
+	return 0;
 }
 
 int

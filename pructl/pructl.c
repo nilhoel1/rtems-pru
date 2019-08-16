@@ -42,6 +42,7 @@ usage(void)
 int
 pructl(int argc, char **argv)
 {
+	printk("===== pructl =====");
 	int ch;
 	int reset, enable, disable, wait;
 	const char *type;
@@ -141,6 +142,7 @@ pructl(int argc, char **argv)
 			return 8;
 		}
 	}
+	printk("===== Free PRu =====");
 	pru_free(pru);
 
 	return 0;

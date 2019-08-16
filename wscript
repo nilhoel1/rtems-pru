@@ -46,11 +46,11 @@ def build(bld):
                 includes = includes,
                 cflags = cflags)
 
-    bld.objects(name = 'pructl',
-                features = 'c',
-                source = ['pructl/pructl.c'],
-                includes = includes,
-                cflags = cflags)
+#    bld.objects(name = 'pructl',
+#                features = 'c',
+#                source = ['pructl/pructl.c'],
+#                includes = includes,
+#                cflags = cflags)
 
     bld(features = 'c cprogram',
         target = exe,

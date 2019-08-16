@@ -620,6 +620,7 @@ ti_initialise(pru_t pru)
 	if (fd < 0)
 		return EINVAL;
 	pru->fd = fd;
+	#ifdef REMOVED_AND_WILL_FIX_LATER
 	/* N.B.: The order matters. */
 	for (i = 0; i < sizeof(mmap_sizes)/sizeof(mmap_sizes[0]); i++) {
 		pru->mem = mmap(0, mmap_sizes[i], PROT_READ|PROT_WRITE,
@@ -631,23 +632,28 @@ ti_initialise(pru_t pru)
 		}
 	}
 	if (pru->mem == MAP_FAILED) {
-		DPRINTF("mmap failed %d\n", saved_errno);
+		printk("mmap failed %d\n", saved_errno);
 		errno = saved_errno;
 		close(fd);
 		return -1;
 	}
+	#else
+	pru->mem = 0x4a300000;
+	printk("===== pru->mem = 0x4a300000 =====\n");
+	#endif
 	/*
 	 * Use the md_stor field to save the revision.
 	 */
 	if (ti_reg_read_4(pru->mem, AM18XX_INTC_REG) == AM18XX_REV) {
-		DPRINTF("found AM18XX PRU @ %p\n", (void *)pru->mem);
+		printk("found AM18XX PRU @ %p\n", (void *)pru->mem);
 		pru->md_stor[0] = AM18XX_REV;
 	} else if (ti_reg_read_4(pru->mem, AM33XX_INTC_REG) == AM33XX_REV) {
-		DPRINTF("found AM33XX PRU @ %p\n", (void *)pru->mem);
+		printk("found AM33XX PRU @ %p\n", (void *)pru->mem);
 		pru->md_stor[0] = AM33XX_REV;
 	} else {
 		munmap(pru->mem, pru->mem_size);
 		close(fd);
+		printk("===== Manual mem failed =====\n");
 		return EINVAL;
 	}
 	ti_disable(pru, 0);
