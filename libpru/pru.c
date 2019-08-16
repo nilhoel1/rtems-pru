@@ -174,7 +174,9 @@ pru_upload(pru_t pru, unsigned int pru_number, const char *file)
 	char *buffer;
 
 	DPRINTF("pru %d file %s\n", pru_number, file);
+	printk("=== open: %s ===\n", file);
 	fd = open(file, O_RDONLY);
+	printk("=== opened: %s ===\n", file);
 	if (fd < 0) {
 		printk("=== fd < 0 ===\n");
 		return errno;
@@ -189,7 +191,7 @@ pru_upload(pru_t pru, unsigned int pru_number, const char *file)
 	if (buffer == MAP_FAILED) {
 		saved_errno = errno;
 		close(fd);
-		printk("=== buffer = MAP_FAILED ===\n");
+		printk("=== MAP_FAILED: ErrNo %d ===\n", saved_errno);
 		return saved_errno;
 	}
 	printk("=== using ti:pru function ===\n");

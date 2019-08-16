@@ -10,9 +10,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <inttypes.h>
-#include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/event.h>
+#include <err.h>
+#include <fcntl.h>
+#include <signal.h>  
 
 #include <rtems/console.h>
 #include <rtems/rtems-debugger.h>
@@ -307,6 +312,25 @@ pructl(int argc, char **argv)
 	return 0;
 }
 
+int testirq( int argc, char* argv[] )
+{
+	int fd;
+	printf("opening of %s ", argv[1]);
+	fd = open( argv[1], O_RDONLY);
+	if (fd == -1) 
+		perror("open");
+	for(;;)
+	{
+		uint64_t time;
+		while( read(fd, &time, sizeof(time)) > 0 )
+		{
+			printf("=> %llu.%09llu \n", time/1000000000,time%1000000000);
+		}
+	}
+	close(fd);
+	return EXIT_SUCCESS;
+}
+
 int
 main(int argc, char** argv)
 {
@@ -324,6 +348,8 @@ main(int argc, char** argv)
 
     rtems_shell_add_cmd ("pructl", "misc",
                        "Test PRU", pructl);
+
+	rtems_shell_add_cmd("testirq", "misc", "ValidatePru", testirq);
 
   /* Wait for the SD card */
 	sc = libbsdhelper_wait_for_sd();
