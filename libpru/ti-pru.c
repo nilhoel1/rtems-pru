@@ -606,8 +606,10 @@ ti_initialise(pru_t pru)
 	size_t i;
 	int fd = 0;
 	char dev[64];
+	#ifdef REMOVED_AND_WILL_FIX_LATER
 	size_t mmap_sizes[2] = { AM33XX_MMAP_SIZE, AM18XX_MMAP_SIZE };
 	int saved_errno = 0;
+	#endif /* REMOVED_AND_WILL_FIX_LATER */
 
 	for (i = 0; i < 4; i++) {
 		snprintf(dev, sizeof(dev), "/dev/pruss%zu", i);
@@ -637,10 +639,10 @@ ti_initialise(pru_t pru)
 		close(fd);
 		return -1;
 	}
-	#else
-	pru->mem = 0x4a300000;
+	#else /* REMOVED_AND_WILL_FIX_LATER */
+	pru->mem = (char *)0x4a300000;
 	printk("===== pru->mem = 0x4a300000 =====\n");
-	#endif
+	#endif /* REMOVED_AND_WILL_FIX_LATER */
 	/*
 	 * Use the md_stor field to save the revision.
 	 */

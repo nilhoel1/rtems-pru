@@ -106,17 +106,20 @@ Now mount the sd card and copy the content of the image folder to it and the pru
 When ever the app is rebuild it is only required to overwrite the pru.exe.img on the sd card with the one in the build folder.
 
 ## Using the APP
-When all dependencies are installed and the app builded well, than after booting you should find the device ```dev/pruss0``` and the sd card should be mounted in ```/media```. I am currently working on a shell program to load pru code and execute it. When one is provided it is necessary to map the pru interupts to IRQ with:
+When all dependencies are installed and the app builded well, than after booting you should find the device ```dev/pruss0``` and the sd card should be mounted in ```/media```. I am currently working on a shell program to load pru code and execute it. When one is provided it is necessary to map the pru interrupts to IRQ with:
 ```
 sysctl dev.ti_pruss.0.irq.2.channel=2 # mapping channel 2 to irq2
 sysctl dev.ti_pruss.0.irq.2.event=16 # mapping event 16 to irq2
 sysctl dev.ti_pruss.0.irq.2.enable=1 # enable the irq2
 sysctl dev.ti_pruss.0.global_interrupt_enable=1 # enable PRU global interrupts
 ```
-This shoud create the device  ```/dev/pruss0.irqN```, where N is the interrupt channel and with the above example this should be 2. When runing test.bin from the pruexamples a interrupt should be triggered.
+This should create the device  ```/dev/pruss0.irqN```, where N is the interrupt channel and with the above example this should be 2. When runing test.bin from the pruexamples a interrupt should be triggered.
 
 The pru example test.p can then be loaded to pru with:
 ```
+# -p 0 is pru0, -t ti is type Texas Instruments, -er means enable+reset
 pructl -p 0  -t ti -er test.bin
 ```
 But make sure to be in the same directoire as the test.bin.
+
+testirq pruss0.irq2

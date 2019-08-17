@@ -18,6 +18,7 @@
 #include <err.h>
 #include <fcntl.h>
 #include <signal.h>  
+#include <time.h> 
 
 #include <rtems/console.h>
 #include <rtems/rtems-debugger.h>
@@ -30,10 +31,13 @@
 
 #include <libpru/libpru.h>
 
+#include "pruexamples/loop_bin.h"
+#include "pruexamples/test_bin.h"
+
 extern rtems_shell_cmd_t rtems_shell_DEBUGGER_Command;
 
 #define EVT_MOUNTED		RTEMS_EVENT_9
-#define STACK_SIZE_MEDIA_SERVER	(64 * 1024)
+#define STACK_SIZE_MEDIA_SERVER	(64 * 2056)
 #define PRIO_MEDIA_SERVER	200
 
 /*
@@ -187,134 +191,9 @@ libbsdhelper_wait_for_sd(void)
 	return sc;
 }
 
-
-int
-usage(void)
-{
-	fprintf(stderr, "usage: %s -t type [-p pru-number] [-edrw] [program]\n",
-	    "pructl");
-	return 99;
-}
-
-int
-pructl(int argc, char **argv)
-{
-	printk("===== pructl =====\n");
-	int ch;
-	int reset, enable, disable, wait;
-	const char *type;
-	unsigned int pru_number;
-	pru_type_t pru_type;
-	pru_t pru;
-        int error;
-
-	reset = enable = disable = pru_number = wait = 0;
-	type = NULL;
-	error = 0;
-	while ((ch = getopt(argc, argv, "t:p:edrw")) != -1) {
-		switch (ch) {
-		case 't':
-			type = optarg;
-			break;
-		case 'p':
-			pru_number = (unsigned int)strtoul(optarg, NULL, 10);
-			break;
-		case 'e':
-			enable = 1;
-			break;
-		case 'd':
-			disable = 1;
-			break;
-		case 'r':
-			reset = 1;
-			break;
-		case 'w':
-			wait = 1;
-			break;
-		case '?':
-		default:
-			return usage();
-		}
-	}
-	argc -= optind;
-	argv += optind;
-	if (enable && disable) {
-		fprintf(stderr, "%s: conflicting options: -e and -d\n",
-		    "pructl");
-		return usage();
-	}
-	if (type == NULL) {
-		fprintf(stderr, "%s: missing type (-t)\n", "pructl");
-		return usage();
-	}
-  printk("=== pru_name_to_type\n");
-	pru_type = pru_name_to_type(type);
-	if (pru_type == PRU_TYPE_UNKNOWN) {
-		fprintf(stderr, "%s: invalid type '%s'\n", "pructl",
-		    type);
-		return 2;
-	}
-  printk("=== pru_alloc\n");
-	pru = pru_alloc(pru_type);
-	if (pru == NULL) {
-		fprintf(stderr, "%s: unable to allocate PRU structure: %s\n",
-		    "pructl", strerror(errno));
-		return 3;
-	}
-	if (reset) {
-    printk("=== pru_reset\n");
-		error = pru_reset(pru, pru_number);
-		if (error) {
-			fprintf(stderr, "%s: unable to reset PRU %d\n",
-			    "pructl", pru_number);
-			return 4;
-		}
-	}
-	if (argc > 0) {
-    printk("=== pru_upload\n");
-		error = pru_upload(pru, pru_number, argv[0]);
-		if (error) {
-			fprintf(stderr, "%s: unable to upload %s: %s\n",
-			    "pructl", argv[0], strerror(errno));
-			return 5;
-		}
-	}
-	if (enable) {
-    printk("=== pru_enable\n");
-		error = pru_enable(pru, pru_number, 0);
-		if (error) {
-			fprintf(stderr, "%s: unable to enable PRU %d\n",
-			    "pructl", pru_number);
-			return 6;
-		}
-	}
-	if (disable) {
-    printk("=== pru_disable\n");
-		error = pru_disable(pru, pru_number);
-		if (error) {
-			fprintf(stderr, "%s: unable to disable PRU %d\n",
-			    "pructl", pru_number);
-			return 7;
-		}
-	}
-	if (wait) {
-    printk("=== pru_wait\n");
-		error = pru_wait(pru, pru_number);
-		if (error) {
-			fprintf(stderr, "%s: unable to wait for PRU %d\n",
-			    "pructl", pru_number);
-			return 8;
-		}
-	}
-	printk("===== Free PRu =====\n");
-	pru_free(pru);
-
-	return 0;
-}
-
 int testirq( int argc, char* argv[] )
 {
-	int fd;
+	int fd = 0;
 	printf("opening of %s ", argv[1]);
 	fd = open( argv[1], O_RDONLY);
 	if (fd == -1) 
@@ -322,13 +201,70 @@ int testirq( int argc, char* argv[] )
 	for(;;)
 	{
 		uint64_t time;
+		//printk("=== read file\n");
 		while( read(fd, &time, sizeof(time)) > 0 )
 		{
-			printf("=> %llu.%09llu \n", time/1000000000,time%1000000000);
+			printk("=> %llu.%09llu \n", time/1000000000,time%1000000000);
 		}
 	}
 	close(fd);
 	return EXIT_SUCCESS;
+}
+
+int testpru (){
+	pru_type_t pru_type;
+	pru_t pru;
+	int error = 0;
+
+	printk("=== pru_name_to_type\n");
+	pru_type = pru_name_to_type("ti");
+	if (pru_type == PRU_TYPE_UNKNOWN) {
+		printf("=== Unknown PRU Type\n");
+		return -1;
+	}
+
+	printk("=== pru_alloc\n");
+	pru = pru_alloc(pru_type);
+	if (pru == NULL) {
+		printf("=== pru_alloc failed\n");
+		return -1;
+	}
+
+	printk("=== pru_reset\n");
+	error = pru_reset(pru, 0);
+	if (error) {
+		printf("=== pru_reset failed\n");
+		return -1;
+	}
+
+	printk("=== pru_upload\n");
+	error = pru_upload_buffer(pru, 0, (const char *) PRU_loop_code,
+		sizeof(PRU_loop_code)*sizeof(unsigned int));
+	if (error) {
+		printf("=== pru_upload failed\n");
+		return -1;
+	}
+
+
+	printk("=== pru_enable\n");
+	error = pru_enable(pru, 0, 0);
+	clock_t t;
+	t = clock();
+	if (error) {
+			printf("=== pru_enable failed\n");
+			return -1;
+	}
+
+	printk("=== waiting for pru\n");
+	pru_wait(pru, 0);
+	t = clock() - t; 
+	double time_taken = ((double)t)/CLOCKS_PER_SEC;
+	printf("=== pru returned after: %f seconds\n", time_taken);
+
+	printk("=== free_pru\n");
+	pru_free(pru);
+	printf("=== finish\n");
+	return 0;
 }
 
 int
@@ -344,20 +280,23 @@ main(int argc, char** argv)
   printf("\nLibBSD initialized\n\n");
 
 
-  libbsdhelper_init_sd_card(PRIO_MEDIA_SERVER);
+  //libbsdhelper_init_sd_card(PRIO_MEDIA_SERVER);
 
-    rtems_shell_add_cmd ("pructl", "misc",
-                       "Test PRU", pructl);
+//    rtems_shell_add_cmd ("pructl", "misc",
+//                       "Test PRU", pructl);
 
 	rtems_shell_add_cmd("testirq", "misc", "ValidatePru", testirq);
 
-  /* Wait for the SD card */
+	rtems_shell_add_cmd("testpru", "misc", "load test.p to pru", testpru);
+
+  /* Wait for the SD card 
 	sc = libbsdhelper_wait_for_sd();
 	if (sc == RTEMS_SUCCESSFUL) {
 		printf("SD: OK\n");
 	} else {
 		printf("ERROR: SD could not be mounted after timeout\n");
 	}
+	*/
 
   sc = RTEMS_SUCCESSFUL;
 
