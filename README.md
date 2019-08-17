@@ -122,4 +122,11 @@ pructl -p 0  -t ti -er test.bin
 ```
 But make sure to be in the same directoire as the test.bin.
 
-testirq pruss0.irq2
+## UPDATE
+In this branche the above chapter wont work.
+I am having troubles with the file system.
+So please just run:
+```
+testpru
+```
+In the shell, to run the loop file from pruexamples folder.
