@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <bsp/prussdrv.h>
-#include <bsp/pruss_intc_mapping.h>
-#include <bsp/pruss-shell.h>
+#include <libpru/libpru.h>
+#include <pruss-shell.h>
 
 #include <rtems/printer.h>
 
@@ -20,25 +19,14 @@ typedef struct {
   rtems_pruss_shell_handler   handler; /**< The sub-command's handler. */
   const char*                 help;    /**< The sub-command's help. */
 }rtems_pruss_shell_cmd;
-/**
- * Object print data.
- */
-typedef struct
-{
-  const rtems_printer* printer;           /**< The RTEMS printer. */
-  bool prussdrv_init;                     /**< Print if prssdrv is initialised. */
-  int pruss_number;                       /**< The PRU number. */
-  bool pruss0_open;                       /**< Print PRU0 is open. */
-  bool pruss1_open;                       /**< Print PRU0 is open .*/
-  unsigned int prruss0_host_interrupt;    /*< Print PRU0 host interrupt. */
-  unsigned int prruss1_host_interrupt;    /*< Print PRU1 host interrupt .*/
-  bool pruss0_executing;                  /**< Print PRU0 is running. */
-  bool pruss1_executing;                  /**< Print PRU1 is running. */
-  char* pruss0_file_name;                 /**< Print file running on pruss0. */
-  char* pruss1_file_name;                 /**< Print file running on pruss01. */
-} rtems_rtl_obj_print;
 
-int
+/**
+ * Object data.
+ */
+pru_t pru;
+
+/* Prints the current pru status
+  */
 rtems_pruss_shell_status (const rtems_printer* printer,
                         int                  argc,
                         char*                argv[])
@@ -46,20 +34,63 @@ rtems_pruss_shell_status (const rtems_printer* printer,
   return 0;
 }
 
-/* Tries to Initialise PRU0 and returns -1 if failed. */
+/* Initialises the PRU
+   This function calls PRU_alloc and pru_reset. */
 int
 rtems_pruss_shell_init (const rtems_printer* printer,
                         int                  argc,
                         char*                argv[])
 {
-  prussdrv_init();
-  if (prussdrv_open(PRU_EVTOUT_0) == -1) {
-    rtems_printf (printer, "prussdrv_open() failed\n");
-    return 1;
+  int ret;
+
+  ret = rtems_pruss_shell_alloc (printer, argc, argv);
+  if( ret != 0)
+    return ret;
+  
+  ret = rtems_pruss_shell_reset (printer, argc, argv);
+  return ret;
+}
+
+/* Allocates the PRU
+   This function calls pru_alloc. */
+int
+rtems_pruss_shell_alloc (const rtems_printer* printer,
+                        int                  argc,
+                        char*                argv[])
+{
+  if (pru == NULL) {
+    pru = pru_alloc(pru_name_to_type("ti"));
+    if (pru == NULL) {
+      rtems_printf (printer, "error: PRU allocation failed\n");
+      return -1;
+    }
+  }
+  else {
+    rtems_printf (printer, "warning: PRU already allocated\n");
+  }
+  return 0;
+}
+
+/* Resets the PRU
+   This function calls PRU_reset. */
+int
+rtems_pruss_shell_reset (const rtems_printer* printer,
+                        int                  argc,
+                        char*                argv[])
+{
+  int error;
+  const char opt[2] = {"0", "1"};
+  if (rtems_pruss_check_opts (printer, opt, argc, argv)) {
+    return -1;
   }
 
-  tpruss_intc_initdata pruss_intc_initdata = PRUSS_INTC_INITDATA;
-  prussdrv_pruintc_init(&pruss_intc_initdata);
+  int pru_number = atoi(argv[argc]);
+
+  error = pru_reset(pru, 0);
+  if(error){
+    rtems_printf (printer, "error: PRU reset failed\n");
+    return -1;
+  }
 
   return 0;
 }
@@ -67,19 +98,79 @@ rtems_pruss_shell_init (const rtems_printer* printer,
 /* Loads binary file to the pruss.
 Pruss has to be initialised first. */
 int
-rtems_pruss_shell_load (const rtems_printer* printer,
+rtems_pruss_shell_upload (const rtems_printer* printer,
                         int                  argc,
                         char*                argv[])
 {
-//  printf("Executing program and waiting for termination\n");
-  if (argc == 2) {
-    if (prussdrv_load_datafile(0 /* PRU0 */, argv[1]) < 0) {
-      rtems_printf (printer, "Error loading %s\n", argv[1]);
-      exit(-1);
-    }
+  if (argc != 2) {
+    return -1;
   }
-  rtems_printf (printer, "error: unknown option: %s\n", argv[argc]);
-  return -1;
+  if (pru == NULL) {
+    rtems_printf (printer, "error: PRU not allocated\n");
+  }
+  int error;
+  const char opt[2] = {"0", "1"};
+  if (rtems_pruss_check_opts (printer, opt, 0, argv)) {
+    return -1;
+  }
+  int pru_number = atoi(argv[0]);
+  int error;
+  error = pru_upload (pru, pru_number, argv[argc]);
+  if (error){
+    rtems_printf (printer, "error: PRU upload failed\n");
+    return -1;
+  }
+  return 0;
+}
+
+/* Starts the PRU.
+  PRU has to be initialised first. */
+int
+rtems_pruss_shell_start (const rtems_printer* printer,
+                        int                  argc,
+                        char*                argv[])
+{
+  if (pru == NULL) {
+    rtems_printf (printer, "error: PRU not allocated\n");
+  }
+  int error;
+  const char opt[2] = {"0", "1"};
+  if (rtems_pruss_check_opts (printer, opt, 0, argv)) {
+    return -1;
+  }
+  int pru_number = atoi(argv[0]);
+  int error;
+  error = pru_enable (pru, pru_number, 0);
+  if (error){
+    rtems_printf (printer, "error: Starting PRU failed\n");
+    return -1;
+  }
+  return 0;
+}
+
+/* Steps one instruction on the PRU.
+  PRU has to be initialised first. */
+int
+rtems_pruss_shell_step (const rtems_printer* printer,
+                        int                  argc,
+                        char*                argv[])
+{
+  if (pru == NULL) {
+    rtems_printf (printer, "error: PRU not allocated\n");
+  }
+  int error;
+  const char opt[2] = {"0", "1"};
+  if (rtems_pruss_check_opts (printer, opt, 0, argv)) {
+    return -1;
+  }
+  int pru_number = atoi(argv[0]);
+  int error;
+  error = pru_enable (pru, pru_number, 1);
+  if (error){
+    rtems_printf (printer, "error: PRU step failed\n");
+    return -1;
+  }
+  return 0;
 }
 
 int
@@ -231,13 +322,17 @@ rtems_pruss_shell_command (int argc, char* argv[])
     { "status", rtems_pruss_shell_status,
       "Display the status of the PRU" },
     { "init", rtems_pruss_shell_init,
-      "\tInitialize/Open the PRU" },
-    { "load", rtems_pruss_shell_load,
-      "\tLoad code in the PRU" },
-    { "run", rtems_pruss_shell_run,
-      "\tActivate the PRU" },
-    { "stop", rtems_pruss_shell_stop,
-      "\tStop the PRU" }
+      "\tAllocates and resets PRU" },
+    { "load", rtems_pruss_shell_alloc,
+      "\tAllocated the PRU memory" },
+    { "run", rtems_pruss_shell_reset,
+      "\tResets the PRU" },
+    { "stop", rtems_pruss_shell_upload,
+      "\tUploads file to PRU" },
+    { "stop", rtems_pruss_shell_start,
+      "\tStarts the PRU" },
+    { "stop", rtems_pruss_shell_step,
+      "\tExecutes singe command on PRU" }
   };
 
   rtems_printer printer;
