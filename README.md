@@ -130,3 +130,8 @@ So please just run:
 testpru
 ```
 In the shell, to run the loop file from pruexamples folder.
+
+To run the example showing that IRQ interupts work please apply the afore mentioned  commands and run:
+```
+testirq
+```

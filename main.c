@@ -193,20 +193,69 @@ libbsdhelper_wait_for_sd(void)
 
 int testirq( int argc, char* argv[] )
 {
+	pru_type_t pru_type;
+	pru_t pru;
+	int error = 0;
+
+	printf("=== pru_name_to_type\n");
+	pru_type = pru_name_to_type("ti");
+	if (pru_type == PRU_TYPE_UNKNOWN) {
+		printf("=== Unknown PRU Type\n");
+		return -1;
+	}
+
+	printf("=== pru_alloc\n");
+	pru = pru_alloc(pru_type);
+	if (pru == NULL) {
+		printf("=== pru_alloc failed\n");
+		return -1;
+	}
+
+	printf("=== pru_reset\n");
+	error = pru_reset(pru, 0);
+	if (error) {
+		printf("=== pru_reset failed\n");
+		return -1;
+	}
+
+	printf("=== pru_upload\n");
+	error = pru_upload_buffer(pru, 0, (const char *) PRU_test_code,
+		sizeof(PRU_test_code)*sizeof(unsigned int));
+	if (error) {
+		printf("=== pru_upload failed\n");
+		return -1;
+	}
+
+
+	printf("=== pru_enable\n");
+	error = pru_enable(pru, 0, 0);
+	clock_t t;
+	t = clock();
+	if (error) {
+			printf("=== pru_enable failed\n");
+			return -1;
+	}
+
 	int fd = 0;
-	printf("opening of %s ", argv[1]);
-	fd = open( argv[1], O_RDONLY);
+	printf("opening of /dev/pruss0.irq2");
+	const char file[16] ="/dev/pruss0.irq2";
+	fd = open (file, O_RDONLY);
 	if (fd == -1) 
 		perror("open");
-	for(;;)
+	t = clock() - t; 
+	double time_taken = ((double)t)/CLOCKS_PER_SEC;
+	for(;time_taken <= 5;)
 	{
 		uint64_t time;
-		//printk("=== read file\n");
+		printf("read File");
 		while( read(fd, &time, sizeof(time)) > 0 )
 		{
-			printk("=> %llu.%09llu \n", time/1000000000,time%1000000000);
+			printf("=> %llu.%09llu \n", time/1000000000,time%1000000000);
 		}
+	t = clock() - t; 
+	time_taken = ((double)t)/CLOCKS_PER_SEC;
 	}
+	pru_free(pru);
 	close(fd);
 	return EXIT_SUCCESS;
 }
@@ -216,28 +265,28 @@ int testpru (){
 	pru_t pru;
 	int error = 0;
 
-	printk("=== pru_name_to_type\n");
+	printf("=== pru_name_to_type\n");
 	pru_type = pru_name_to_type("ti");
 	if (pru_type == PRU_TYPE_UNKNOWN) {
 		printf("=== Unknown PRU Type\n");
 		return -1;
 	}
 
-	printk("=== pru_alloc\n");
+	printf("=== pru_alloc\n");
 	pru = pru_alloc(pru_type);
 	if (pru == NULL) {
 		printf("=== pru_alloc failed\n");
 		return -1;
 	}
 
-	printk("=== pru_reset\n");
+	printf("=== pru_reset\n");
 	error = pru_reset(pru, 0);
 	if (error) {
 		printf("=== pru_reset failed\n");
 		return -1;
 	}
 
-	printk("=== pru_upload\n");
+	printf("=== pru_upload\n");
 	error = pru_upload_buffer(pru, 0, (const char *) PRU_loop_code,
 		sizeof(PRU_loop_code)*sizeof(unsigned int));
 	if (error) {
@@ -246,7 +295,7 @@ int testpru (){
 	}
 
 
-	printk("=== pru_enable\n");
+	printf("=== pru_enable\n");
 	error = pru_enable(pru, 0, 0);
 	clock_t t;
 	t = clock();
@@ -255,13 +304,13 @@ int testpru (){
 			return -1;
 	}
 
-	printk("=== waiting for pru\n");
+	printf("=== waiting for pru\n");
 	pru_wait(pru, 0);
 	t = clock() - t; 
 	double time_taken = ((double)t)/CLOCKS_PER_SEC;
 	printf("=== pru returned after: %f seconds\n", time_taken);
 
-	printk("=== free_pru\n");
+	printf("=== free_pru\n");
 	pru_free(pru);
 	printf("=== finish\n");
 	return 0;
@@ -280,7 +329,7 @@ main(int argc, char** argv)
   printf("\nLibBSD initialized\n\n");
 
 
-  //libbsdhelper_init_sd_card(PRIO_MEDIA_SERVER);
+  libbsdhelper_init_sd_card(PRIO_MEDIA_SERVER);
 
 //    rtems_shell_add_cmd ("pructl", "misc",
 //                       "Test PRU", pructl);
@@ -289,14 +338,13 @@ main(int argc, char** argv)
 
 	rtems_shell_add_cmd("testpru", "misc", "load test.p to pru", testpru);
 
-  /* Wait for the SD card 
+  /* Wait for the SD card */
 	sc = libbsdhelper_wait_for_sd();
 	if (sc == RTEMS_SUCCESSFUL) {
 		printf("SD: OK\n");
 	} else {
 		printf("ERROR: SD could not be mounted after timeout\n");
 	}
-	*/
 
   sc = RTEMS_SUCCESSFUL;
 
