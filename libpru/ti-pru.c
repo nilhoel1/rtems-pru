@@ -634,28 +634,26 @@ ti_initialise(pru_t pru)
 		}
 	}
 	if (pru->mem == MAP_FAILED) {
-		printk("mmap failed %d\n", saved_errno);
+		DPRINTF("mmap failed %d\n", saved_errno);
 		errno = saved_errno;
 		close(fd);
 		return -1;
 	}
 	#else /* REMOVED_AND_WILL_FIX_LATER */
 	pru->mem = (char *)0x4a300000;
-	printk("===== pru->mem = 0x4a300000 =====\n");
 	#endif /* REMOVED_AND_WILL_FIX_LATER */
 	/*
 	 * Use the md_stor field to save the revision.
 	 */
 	if (ti_reg_read_4(pru->mem, AM18XX_INTC_REG) == AM18XX_REV) {
-		printk("found AM18XX PRU @ %p\n", (void *)pru->mem);
+		DPRINTF("found AM18XX PRU @ %p\n", (void *)pru->mem);
 		pru->md_stor[0] = AM18XX_REV;
 	} else if (ti_reg_read_4(pru->mem, AM33XX_INTC_REG) == AM33XX_REV) {
-		printk("found AM33XX PRU @ %p\n", (void *)pru->mem);
+		DPRINTF("found AM33XX PRU @ %p\n", (void *)pru->mem);
 		pru->md_stor[0] = AM33XX_REV;
 	} else {
 		munmap(pru->mem, pru->mem_size);
 		close(fd);
-		printk("===== Manual mem failed =====\n");
 		return EINVAL;
 	}
 	ti_disable(pru, 0);
