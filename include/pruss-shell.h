@@ -27,17 +27,37 @@ rtems_pruss_shell_init (const rtems_printer* printer,
                         char*                argv[]);
 
 int
-rtems_pruss_shell_load (const rtems_printer* printer,
+rtems_pruss_shell_alloc (const rtems_printer* printer,
                         int                  argc,
                         char*                argv[]);
 
 int
-rtems_pruss_shell_run (const rtems_printer* printer,
+rtems_pruss_shell_reset (const rtems_printer* printer,
+                        int                  argc,
+                        char*                argv[]);
+
+int
+rtems_pruss_shell_upload (const rtems_printer* printer,
+                        int                  argc,
+                        char*                argv[]);
+
+int
+rtems_pruss_shell_start (const rtems_printer* printer,
+                        int                  argc,
+                        char*                argv[]);
+
+int
+rtems_pruss_shell_step (const rtems_printer* printer,
                         int                  argc,
                         char*                argv[]);
 
 int
 rtems_pruss_shell_stop (const rtems_printer* printer,
+                        int                  argc,
+                        char*                argv[]);
+
+int
+rtems_pruss_shell_wait (const rtems_printer* printer,
                         int                  argc,
                         char*                argv[]);
 

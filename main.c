@@ -31,6 +31,8 @@
 
 #include <libpru/libpru.h>
 
+#include <pruss-shell.h>
+
 #include "pruexamples/loop_bin.h"
 #include "pruexamples/test_bin.h"
 
@@ -335,6 +337,9 @@ main(int argc, char** argv)
 //                       "Test PRU", pructl);
 
 	rtems_shell_add_cmd("testirq", "misc", "ValidatePru", testirq);
+
+	rtems_shell_add_cmd ("pruss", "misc",
+                       "Test PRU", rtems_pruss_shell_command);
 
 	rtems_shell_add_cmd("testpru", "misc", "load test.p to pru", testpru);
 
