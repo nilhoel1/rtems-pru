@@ -174,27 +174,21 @@ pru_upload(pru_t pru, unsigned int pru_number, const char *file)
 	char *buffer;
 
 	DPRINTF("pru %d file %s\n", pru_number, file);
-	printk("=== open: %s ===\n", file);
 	fd = open(file, O_RDONLY);
-	printk("=== opened: %s ===\n", file);
 	if (fd < 0) {
-		printk("=== fd < 0 ===\n");
 		return errno;
 	}
 	if (fstat(fd, &sb) != 0) {
 		saved_errno = errno;
 		close(fd);
-		printk("=== fstat(fd, &sb) != 0) ===\n");
 		return saved_errno;
 	}
 	buffer = mmap(0, (size_t)sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
 	if (buffer == MAP_FAILED) {
 		saved_errno = errno;
 		close(fd);
-		printk("=== MAP_FAILED: ErrNo %d ===\n", saved_errno);
 		return saved_errno;
 	}
-	printk("=== using ti:pru function ===\n");
 	error = pru->upload_buffer(pru, pru_number, buffer,
 	    (size_t)sb.st_size);
 	munmap(buffer, (size_t)sb.st_size);

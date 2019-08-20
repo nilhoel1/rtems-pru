@@ -46,11 +46,11 @@ def build(bld):
                 includes = includes,
                 cflags = cflags)
 
-#    bld.objects(name = 'pructl',
-#                features = 'c',
-#                source = ['pructl/pructl.c'],
-#                includes = includes,
-#                cflags = cflags)
+    bld.objects(name = 'pruss-shell',
+                features = 'c',
+                source = ['pruss-shell.c'],
+                includes = includes,
+                cflags = cflags)
 
     bld(features = 'c cprogram',
         target = exe,
@@ -59,7 +59,7 @@ def build(bld):
         includes = includes,
         cflags = cflags,
         use = ['libpru',
-                'pructl'],
+                'pruss-shell'],
         lib = ['debugger',
                 'rtemscpu',
                 'z'])

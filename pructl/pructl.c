@@ -42,7 +42,7 @@ usage(void)
 int
 pructl(int argc, char **argv)
 {
-	printk("===== pructl =====");
+	printk("===== pructl =====\n");
 	int ch;
 	int reset, enable, disable, wait;
 	const char *type;
@@ -76,7 +76,7 @@ pructl(int argc, char **argv)
 			break;
 		case '?':
 		default:
-			usage();
+			return usage();
 		}
 	}
 	argc -= optind;
@@ -84,18 +84,20 @@ pructl(int argc, char **argv)
 	if (enable && disable) {
 		fprintf(stderr, "%s: conflicting options: -e and -d\n",
 		    "pructl");
-		usage();
+		return usage();
 	}
 	if (type == NULL) {
 		fprintf(stderr, "%s: missing type (-t)\n", "pructl");
-		usage();
+		return usage();
 	}
+  printk("=== pru_name_to_type\n");
 	pru_type = pru_name_to_type(type);
 	if (pru_type == PRU_TYPE_UNKNOWN) {
 		fprintf(stderr, "%s: invalid type '%s'\n", "pructl",
 		    type);
 		return 2;
 	}
+  printk("=== pru_alloc\n");
 	pru = pru_alloc(pru_type);
 	if (pru == NULL) {
 		fprintf(stderr, "%s: unable to allocate PRU structure: %s\n",
@@ -103,6 +105,7 @@ pructl(int argc, char **argv)
 		return 3;
 	}
 	if (reset) {
+    printk("=== pru_reset\n");
 		error = pru_reset(pru, pru_number);
 		if (error) {
 			fprintf(stderr, "%s: unable to reset PRU %d\n",
@@ -111,6 +114,7 @@ pructl(int argc, char **argv)
 		}
 	}
 	if (argc > 0) {
+    printk("=== pru_upload\n");
 		error = pru_upload(pru, pru_number, argv[0]);
 		if (error) {
 			fprintf(stderr, "%s: unable to upload %s: %s\n",
@@ -119,6 +123,7 @@ pructl(int argc, char **argv)
 		}
 	}
 	if (enable) {
+    printk("=== pru_enable\n");
 		error = pru_enable(pru, pru_number, 0);
 		if (error) {
 			fprintf(stderr, "%s: unable to enable PRU %d\n",
@@ -127,6 +132,7 @@ pructl(int argc, char **argv)
 		}
 	}
 	if (disable) {
+    printk("=== pru_disable\n");
 		error = pru_disable(pru, pru_number);
 		if (error) {
 			fprintf(stderr, "%s: unable to disable PRU %d\n",
@@ -135,6 +141,7 @@ pructl(int argc, char **argv)
 		}
 	}
 	if (wait) {
+    printk("=== pru_wait\n");
 		error = pru_wait(pru, pru_number);
 		if (error) {
 			fprintf(stderr, "%s: unable to wait for PRU %d\n",
@@ -142,7 +149,7 @@ pructl(int argc, char **argv)
 			return 8;
 		}
 	}
-	printk("===== Free PRu =====");
+	printk("===== Free PRu =====\n");
 	pru_free(pru);
 
 	return 0;
