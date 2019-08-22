@@ -17,8 +17,10 @@
 #include <sys/event.h>
 #include <err.h>
 #include <fcntl.h>
-#include <signal.h>  
-#include <time.h> 
+#include <signal.h>
+#include <time.h>
+#include <pthread.h>
+
 
 #include <rtems/console.h>
 #include <rtems/rtems-debugger.h>
@@ -56,6 +58,10 @@ extern rtems_shell_cmd_t rtems_shell_DEBUGGER_Command;
  #define NET_NETMASK "255.255.255.0"
  #define NET_GATEWAY "192.168.2.1"
 #endif
+
+int thread_id = 0;
+pthread_t thread1;
+char *message1 = "Thread 1";
 
 static rtems_id wait_mounted_task_id = RTEMS_INVALID_ID;
 
@@ -193,6 +199,44 @@ libbsdhelper_wait_for_sd(void)
 	return sc;
 }
 
+void *printirq(char* file){
+
+	int fd = 0;
+	printf("opening of %s\n", file);
+	fd = open (file, O_RDONLY);
+	if (fd == -1) {
+		printf("error open: %s", strerror(errno));
+		pthread_exit(NULL);
+	}
+
+	for(;;)
+	{
+		uint64_t time;
+		printf("read File\n");
+		int i;
+		i = read(fd, &time, sizeof(time));
+		if (i == -1) {
+			printf("error read: %s\n", strerror(errno));
+			printf("exit thread\n");
+			pthread_exit(NULL);
+		}
+		while( i > 0 )
+		{
+			printf("=> %llu.%09llu \n", time/1000000000,time%1000000000);
+			i = read(fd, &time, sizeof(time));
+			if (i == -1) {
+				printf("error read: %s\n", strerror(errno));
+				printf("exit thread\n");
+				pthread_exit(NULL);
+			}
+		}
+	printf("close fd\n");
+	close(fd);
+	printf("exit thread\n");
+	pthread_exit(NULL);
+	}
+}
+
 int testirq( int argc, char* argv[] )
 {
 	pru_type_t pru_type;
@@ -227,38 +271,19 @@ int testirq( int argc, char* argv[] )
 		printf("=== pru_upload failed\n");
 		return -1;
 	}
-
+	if(thread_id == 0) {
+		thread_id =pthread_create( &thread1, NULL, printirq("pruss0.irq2"), (void*) message1);
+		printf("created printirq thread\n");
+	}
 
 	printf("=== pru_enable\n");
 	error = pru_enable(pru, 0, 0);
-	clock_t t;
-	t = clock();
 	if (error) {
 			printf("=== pru_enable failed\n");
 			return -1;
 	}
-
-	int fd = 0;
-	printf("opening of /dev/pruss0.irq2");
-	const char file[16] ="/dev/pruss0.irq2";
-	fd = open (file, O_RDONLY);
-	if (fd == -1) 
-		perror("open");
-	t = clock() - t; 
-	double time_taken = ((double)t)/CLOCKS_PER_SEC;
-	for(;time_taken <= 5;)
-	{
-		uint64_t time;
-		printf("read File");
-		while( read(fd, &time, sizeof(time)) > 0 )
-		{
-			printf("=> %llu.%09llu \n", time/1000000000,time%1000000000);
-		}
-	t = clock() - t; 
-	time_taken = ((double)t)/CLOCKS_PER_SEC;
-	}
+	
 	pru_free(pru);
-	close(fd);
 	return EXIT_SUCCESS;
 }
 

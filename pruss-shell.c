@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 
 #include <libpru/libpru.h>
 #include <pruss-shell.h>
@@ -259,7 +261,7 @@ rtems_pruss_shell_upload (const rtems_printer* printer,
 
   error = pru_upload (pru, pru_number, argv[argc-1]);
   if (error){
-    rtems_printf (printer, "error: PRU upload of %s failed\n", argv[argc-1]);
+    rtems_printf (printer, "error %s: PRU upload of %s failed\n", strerror(errno), argv[argc-1]);
     return -1;
   }
   return 0;
