@@ -4,7 +4,7 @@ Application for developing/testing the pru-drivers on rtems.
 ## Building all dependencies
 1. A rtems installation is needed.
 Please take a look at the rtems Quickstart-Guide on this.
-https://github.com/nilhoel1/rtems-libbsd/commits/pruss\
+https://github.com/nilhoel1/rtems-libbsd/commits/pruss
 If the whole libbsd output, I used to analyse the libbsd init process 
 is needed use this branch:
 https://docs.rtems.org/branches/master/user/start/index.html
